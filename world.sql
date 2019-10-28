@@ -21,8 +21,9 @@ CREATE TABLE rooms (
 );
 INSERT INTO "rooms" VALUES(101,1,'Starting Room','This is the start room where you begin your adventure!
 ');
-INSERT INTO "rooms" VALUES(102,1,'Cool guy rom','This is the Cool Guy Only zone!
+INSERT INTO "rooms" VALUES(102,1,'Cool guy room','This is the Cool Guy Only zone!
 ');
+
 
 /*
 INSERT INTO "rooms" VALUES(101,1,'Dimly Lit Path','This path is made of crushed granite with curious blue streaks in it.
@@ -79,4 +80,14 @@ salt TEXT NOT NULL,
 hash TEXT NOT NULL,
 UNIQUE(name)
 );
+
+CREATE TABLE characters (
+id INTEGER PRIMARY KEY,
+player_name TEXT NOT NULL ,
+name TEXT NOT NULL,
+class TEXT NOT NULL,
+level INTEGER NOT NULL,
+FOREIGN KEY(player_name) REFERENCES players(name)
+);
+
 COMMIT;
