@@ -83,7 +83,7 @@ UNIQUE(name)
 
 CREATE TABLE characters (
 id INTEGER PRIMARY KEY,
-player_name TEXT NOT NULL ,
+player_name TEXT NOT NULL,
 name TEXT NOT NULL,
 class TEXT NOT NULL,
 level INTEGER NOT NULL,
