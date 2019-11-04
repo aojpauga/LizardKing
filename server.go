@@ -59,20 +59,21 @@ func handlePlayerConnection(db *sql.DB, conn net.Conn, inputs chan<- InputEvent,
 		}
 	}
 }
-func checkForUser(tx *sql.Tx, username string) (bool, error) {
+func checkForUser(tx *sql.Tx, username string) (bool, int, error) {
 	var name string
-	dbuser := tx.QueryRow("SELECT name FROM players WHERE name=?", username)
-	switch err := dbuser.Scan(&name); err {
+	var id int
+	dbuser := tx.QueryRow("SELECT name,id FROM players WHERE name=?", username)
+	switch err := dbuser.Scan(&name, &id); err {
 	case sql.ErrNoRows:
 		fmt.Printf("User %v does not exist\n", username)
-		return false, tx.Commit()
+		return false, -1, tx.Commit()
 	case nil:
 		fmt.Printf("User %v found!\n", username)
-		return true, tx.Commit()
+		return true, id, tx.Commit()
 	default:
 		fmt.Printf("Error checking for user.\n")
 		tx.Rollback()
-		return false, err
+		return false, -1, err
 	}
 }
 func loginUser(tx *sql.Tx, password string, username string) (bool, error) {
@@ -111,6 +112,30 @@ func loginUser(tx *sql.Tx, password string, username string) (bool, error) {
 	} else {
 		return true, tx.Commit()
 	}
+}
+func getCharacters(tx *sql.Tx, username string) ([]*Character, error) {
+	dbcharacters, err := tx.Query("SELECT name, class, level FROM characters WHERE player_name=?", username)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	defer dbcharacters.Close()
+	var characters []*Character
+	for dbcharacters.Next() {
+		var level int
+		var name, class string
+		if err := dbcharacters.Scan(&name, &class, &level); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		character := Character{name, class, level}
+		characters = append(characters, &character)
+	}
+	if err := dbcharacters.Err(); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	return characters, tx.Commit()
 }
 func createUser(
 	tx *sql.Tx, password string, username string) error {

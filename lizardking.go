@@ -32,6 +32,11 @@ type Player struct {
 	Homebase *Room
 	Outputs  chan OutputEvent
 }
+type Character struct {
+	Name  string
+	Class string
+	Level int
+}
 type InputEvent struct {
 	Player  *Player
 	Command []string
@@ -165,7 +170,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			userexists, err := checkForUser(tx, username)
+			userexists, id, err := checkForUser(tx, username)
 			if err != nil {
 				tx.Rollback()
 				log.Print("Error checking if user exists")
@@ -207,6 +212,17 @@ func main() {
 					log.Print("error creating user")
 					log.Fatal(err)
 				}
+			}
+
+			//Character creator code
+			fmt.Fprintf(conn, "Here is a list of your characters: \n")
+			txc, err := db.Begin()
+			if err != nil {
+				log.Fatal(err)
+			}
+			characters, err := getCharacters(txc, username)
+			for _, character := range characters {
+				fmt.Printf("[%s], level %s %s\n", character.Name, character.Level, character.Class)
 			}
 
 			outputs := make(chan OutputEvent)
