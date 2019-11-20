@@ -73,6 +73,18 @@ INSERT INTO "exits" VALUES(101,102,'n','Door to the Cool Guy Room
 ');
 INSERT INTO "exits" VALUES(102,101,'s','Door to the Start Zone
 ');
+INSERT INTO "exits" VALUES(101,103,'e','Door to the Dead Zone
+');
+INSERT INTO "exits" VALUES(103,101,'w','Door to the Start Zone
+');
+INSERT INTO "exits" VALUES(101,104,'s','Door to the Boss Zone
+');
+INSERT INTO "exits" VALUES(104,101,'n','Door to the Start Zone
+');
+INSERT INTO "exits" VALUES(101,105,'w','Door to the Armor Zone
+');
+INSERT INTO "exits" VALUES(105,101,'e','Door to the Start Zone
+');
 /*
 INSERT INTO "exits" VALUES(1001,1006,'e','More of the same.
 ');
