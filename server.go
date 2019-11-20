@@ -17,9 +17,9 @@ import (
 	"crypto/subtle"
 )
 
-func handlePlayerConnection(db *sql.DB, conn net.Conn, inputs chan<- InputEvent, player *Player) {
+func handlePlayerConnection(db *sql.DB, conn net.Conn, inputs chan<- InputEvent, player *Player, character *Character) {
 	//time.Sleep(30 * time.Second)
-	fmt.Fprintf(conn, "Welcome %s! ", player.Name)
+	fmt.Fprintf(conn, "Welcome %s! ", character.Name)
 	scanner := bufio.NewScanner(conn)
 	fmt.Fprintln(conn, "Enter a command or type 'quit' to quit.")
 	go func() {
@@ -112,6 +112,29 @@ func loginUser(tx *sql.Tx, password string, username string) (bool, error) {
 		return true, tx.Commit()
 	}
 }
+func getCharacters(tx *sql.Tx, username string) ([]*Character, error) {
+	dbcharacters, err := tx.Query("SELECT name, class, level FROM characters WHERE player_name=?", username)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	defer dbcharacters.Close()
+	var characters []*Character
+	for dbcharacters.Next() {
+		var name, class, level string
+		if err := dbcharacters.Scan(&name, &class, &level); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		character := Character{name, class, level}
+		characters = append(characters, &character)
+	}
+	if err := dbcharacters.Err(); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	return characters, tx.Commit()
+}
 func createUser(
 	tx *sql.Tx, password string, username string) error {
 	salt := make([]byte, 32)
@@ -129,5 +152,10 @@ func createUser(
 	hash64 := base64.StdEncoding.EncodeToString(hash)
 
 	tx.Exec("INSERT INTO players (name,salt,hash) VALUES (?,?,?)", username, salt64, hash64)
+	return tx.Commit()
+}
+func createCharacter(tx *sql.Tx, username string, character *Character) error {
+	tx.Exec("INSERT INTO characters (player_name,name,class,level) VALUES (?,?,?)", username, character.Name, character.Class, character.Level)
+	log.Printf("User %s created character %s ", username, character.Name)
 	return tx.Commit()
 }

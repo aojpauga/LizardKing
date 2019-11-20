@@ -21,7 +21,13 @@ CREATE TABLE rooms (
 );
 INSERT INTO "rooms" VALUES(101,1,'Starting Room','This is the start room where you begin your adventure!
 ');
-INSERT INTO "rooms" VALUES(102,1,'Cool guy rom','This is the Cool Guy Only zone!
+INSERT INTO "rooms" VALUES(102,1,'Cool guy room','This is the Cool Guy Only zone!
+');
+INSERT INTO "rooms" VALUES(103,1,'Dead Room','Sorry you died
+');
+INSERT INTO "rooms" VALUES(104,1,'Boss Room','The King Lizard is here! Can you Kill him?
+');
+INSERT INTO "rooms" VALUES(105,1,'Armor Room','You get some armor
 ');
 
 /*

@@ -32,6 +32,11 @@ type Player struct {
 	Homebase *Room
 	Outputs  chan OutputEvent
 }
+type Character struct {
+	Name  string
+	Class string
+	Level string
+}
 type InputEvent struct {
 	Player  *Player
 	Command []string
@@ -209,11 +214,80 @@ func main() {
 				}
 			}
 
+			//Character selection code
+			fmt.Fprintf(conn, "Here is a list of your characters: \n")
+			txc, err := db.Begin()
+			if err != nil {
+				log.Fatal(err)
+			}
+			characters, err := getCharacters(txc, username)
+			if err != nil {
+				log.Print("error getting characters")
+				log.Fatal(err)
+			}
+			playerCharacter := new(Character)
+			for _, character := range characters {
+				fmt.Fprintf(conn, "[%s] - level %s %s\n", character.Name, character.Level, character.Class)
+			}
+			fmt.Fprint(conn, "Type a character name to start or type 'new' to create a new character\n")
+			selectedCharacter := false
+			for selectedCharacter == false {
+				fmt.Fprint(conn, "-> ")
+				scanner1.Scan()
+				text = scanner1.Text()
+				if text == "new" {
+					txc1, err := db.Begin()
+					if err != nil {
+						log.Fatal(err)
+					}
+					fmt.Fprint(conn, "Enter your characters name\n")
+					fmt.Fprint(conn, "-> ")
+					scanner1.Scan()
+					text = scanner1.Text()
+					playerCharacter.Name = text
+					selectedClass := false
+					for selectedClass == false {
+						scanner1 := bufio.NewScanner(conn)
+						fmt.Fprint(conn, "Choose your class by typing an option below!\n")
+						classes := [4]string{"Warrior", "Ranger", "Wizard", "Lizard"}
+						for _, class := range classes {
+							fmt.Fprintf(conn, "%s\n", class)
+						}
+						fmt.Fprint(conn, "-> ")
+						scanner1.Scan()
+						playerclass := scanner1.Text()
+						for _, class := range classes {
+							if playerclass == class {
+								playerCharacter.Class = class
+							}
+						}
+					}
+					playerCharacter.Level = "1"
+					err = createCharacter(txc1, username, playerCharacter)
+					if err != nil {
+						log.Print("error creating character")
+						log.Fatal(err)
+					}
+					selectedCharacter = true
+					break
+				}
+				for _, character := range characters {
+					if text == character.Name {
+						playerCharacter = character
+						selectedCharacter = true
+						break
+					}
+				}
+				fmt.Fprintf(conn, "Character '%s' does not exist\n", text)
+				fmt.Fprintf(conn, "Type a character name to start or type 'new' to create a new character \n")
+			}
+
+			//
 			outputs := make(chan OutputEvent)
 			player := &Player{username, startRoom, startRoom, outputs}
 			inputevent := InputEvent{player, nil, false, true}
 			inputs <- inputevent
-			go handlePlayerConnection(db, conn, inputs, player)
+			go handlePlayerConnection(db, conn, inputs, player, playerCharacter)
 		}
 	}()
 
