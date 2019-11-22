@@ -85,4 +85,12 @@ salt TEXT NOT NULL,
 hash TEXT NOT NULL,
 UNIQUE(name)
 );
+
+CREATE TABLE characters(
+    id INTEGER PRIMARY KEY,
+    player_name TEXT NOT NULL,
+    name TEXT NOT NULL,
+    class TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    FOREIGN KEY(player_name) REFERENCES players(name)
 COMMIT;
